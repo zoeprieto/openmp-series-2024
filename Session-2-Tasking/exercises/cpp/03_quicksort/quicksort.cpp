@@ -31,12 +31,30 @@ int pivot(int* array, int first, int last){
 	return p;
 }
 
-void quicksort(int * array, int first, int last){
+void serial_quicksort(int * array, int first, int last){
 	int pivotElement;
 	if(first<last){
 		pivotElement = pivot(array,first,last);
-		quicksort(array,first,pivotElement-1);
-		quicksort(array,pivotElement+1,last);
+		serial_quicksort(array,first,pivotElement-1);
+		serial_quicksort(array,pivotElement+1,last);
+	}
+}
+
+void quicksort(int * array, int first, int last){
+	int pivotElement;
+	if((last - first + 1) < 10000) {
+		serial_quicksort(array, first, last);
+	} else {
+		pivotElement = pivot(array,first,last);
+		#pragma omp task default(shared)
+		{
+			quicksort(array,first,pivotElement-1);
+		}
+		#pragma omp task default(shared)
+		{
+			quicksort(array,pivotElement+1,last);
+		}
+		#pragma omp taskwait
 	}
 }
 
@@ -65,7 +83,11 @@ int main(int argc, char *argv[]){
 	cout << "Sorting an array of " << length << " elements." << endl;	
 
 	t1=omp_get_wtime();
-	quicksort(toBeSorted,0,length-1);
+	#pragma omp parallel
+	#pragma omp single
+	{
+		quicksort(toBeSorted,0,length-1);
+	}
 	t2=omp_get_wtime()-t1;
 
 	cout << "quicksort took " << t2 << " sec. to complete" << endl;

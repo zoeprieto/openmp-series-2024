@@ -1,7 +1,7 @@
 .PHONY: clean run go debug release
 
 PROG=quicksort
-CXX = CC
+CXX = cc
 FLAGS_OPENMP = -fopenmp
 
 release:

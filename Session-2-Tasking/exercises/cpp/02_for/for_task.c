@@ -45,11 +45,25 @@ int main(int argc, char* argv[])
 
 	double t1 = omp_get_wtime();
 
+	#pragma omp parallel private(i)
+	{
+
+	#pragma omp single
+	{
+
+	#pragma omp taskgroup task_reduction(+:result)
+	{
 	for (i = 0; i < dimension; i++)
 	{
-		result += do_some_computation(i);
+		#pragma omp task in_reduction(+:result)
+		{
+			result += do_some_computation(i);
+		} // end omp task
 	}
 
+	} // end omp single
+	} // end omp taskgroup
+	} // end omp parallel
 	double t2 = omp_get_wtime();
 	printf("Computation took %.3lf seconds.\n", t2 - t1);
 	printf("Result is %.3lf.\n", result);
