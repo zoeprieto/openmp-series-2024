@@ -42,12 +42,12 @@ int main(int argc, char* argv[])
 	#pragma omp parallel
 	{
 
-		#pragma omp for
+		#pragma omp for reduction(min: dMin) reduction(max: dMax)
 		for (i = 0; i < dimension; i++)
 		{
 			dArray[i] = func(i);
-			// compute dMin = fmin(dMin, dArray[i])
-			// compute dMax = fmax(dMax, dArray[i])
+			dMin = fmin(dMin, dArray[i]);
+			dMax = fmax(dMax, dArray[i]);
 		}
 
 	} // end omp parallel

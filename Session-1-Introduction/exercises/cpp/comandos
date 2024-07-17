@@ -1,0 +1,9 @@
+Para correr el ejemplo de Hello world. 
+
+gcc -fopenmp -o hello hello.c
+export OMP_NUM_THREADS=8
+./hello
+
+
+
+en la parte de los ejercicios te dice como correrlo con make, make clean y make run etc 

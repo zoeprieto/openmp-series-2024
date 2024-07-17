@@ -82,13 +82,18 @@ void jacobi (
   while (k <= maxit && error > tol) {
 
     error = 0.0;
+    #pragma omp parallel
+    {
+
     /* copy new solution into old */
+    #pragma omp for private(i) // or collapse(2)
     for (j=0; j<m; j++)
       for (i=0; i<n; i++){
         UOLD(j,i) = U(j,i);
       }
 
     /* compute stencil, residual and update */
+    #pragma omp for private(i, resid) reduction(+:error) // or collapse(2) instead of private(i)
     for (j=1; j<m-1; j++){
       for (i=1; i<n-1; i++){
         resid =(
@@ -104,6 +109,8 @@ void jacobi (
         error =error + resid*resid;
 
       }
+    }
+
     }
     /* error check */
     k++;
@@ -177,6 +184,7 @@ void initialize(
   *dy = 2.0 / (m-1);
 
   /* Initilize initial condition and RHS */
+  #pragma omp parallel for private(i, xx, yy) // or collapse(2) instead of private(i)
   for (j=0; j<m; j++){
     for (i=0; i<n; i++){
       xx = -1.0 + *dx * (i-1);
@@ -209,6 +217,7 @@ void error_check(
   dy = 2.0 / (m-1);
   error = 0.0;
 
+  #pragma omp parallel for private(i, xx, yy, temp) reduction(+:error) // or collapse(2) instead of private(i)
   for (j=0; j<m; j++){
     for (i=0; i<n; i++){
       xx = -1.0 + dx * (i-1);
@@ -266,7 +275,7 @@ int main(int argc, char* argv[]){
 
     printf(" elapsed time : %12.6f\n", r1);
     printf(" MFlops       : %12.6g\n",
-           mits*(m-2)*(n-2)*0.000001*13 / r1);
+           mits*0.000001*(m-2) / r1 *(n-2)*13 );
 
     error_check(n, m, alpha, dx, dy, u, f);
     
